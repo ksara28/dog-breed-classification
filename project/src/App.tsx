@@ -11,6 +11,7 @@ const MarketplacePage = lazy(() => import('./pages/MarketplacePage'));
 const AboutPage = lazy(() => import('./pages/AboutPage'));
 const ContactPage = lazy(() => import('./pages/ContactPage'));
 const ChatPage = lazy(() => import('./pages/ChatPage'));
+const FeedbackPage = lazy(() => import('./pages/FeedbackPage'));
 const CartPage = lazy(() => import('./pages/CartPage'));
 const OrdersPage = lazy(() => import('./pages/OrdersPage'));
 const HistoryPage = lazy(() => import('./pages/HistoryPage'));
@@ -95,6 +96,18 @@ function App() {
         <Navigation />
         <Suspense fallback={<div className="py-24 text-center">Loading...</div>}>
           <ContactPage />
+        </Suspense>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (pathname === '/feedback') {
+    return (
+      <div>
+        <Navigation />
+        <Suspense fallback={<div className="py-24 text-center">Loading...</div>}>
+          <FeedbackPage />
         </Suspense>
         <Footer />
       </div>

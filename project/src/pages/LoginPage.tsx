@@ -6,7 +6,14 @@ export default function LoginPage() {
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [address, setAddress] = useState('');
+  const [city, setCity] = useState('');
+  const [stateVal, setStateVal] = useState('');
+  const [postalCode, setPostalCode] = useState('');
+  const [country, setCountry] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,7 +39,13 @@ export default function LoginPage() {
           navigateToHome();
         }
       } else {
-        const res = await signUp(email, password, fullName || 'User');
+        if (password !== confirmPassword) {
+          setError('Passwords do not match');
+          setLoading(false);
+          return;
+        }
+  const addr = { address: address || undefined, city: city || undefined, state: stateVal || undefined, postal_code: postalCode || undefined, country: country || undefined };
+  const res = await signUp(email, password, fullName || 'User', phone || undefined, addr);
         if (res?.error) {
           setError(res.error.message || JSON.stringify(res.error));
         } else {
@@ -84,6 +97,28 @@ export default function LoginPage() {
                 </div>
               )}
 
+              {mode === 'signup' && (
+                <div>
+                  <label className="block text-xs font-medium text-gray-600">Phone</label>
+                  <input value={phone} onChange={(e) => setPhone(e.target.value)} className="mt-1 w-full border rounded-md px-3 py-2" placeholder="+1 555 123 4567" />
+                </div>
+              )}
+
+              {mode === 'signup' && (
+                <div>
+                  <label className="block text-xs font-medium text-gray-600">Address</label>
+                  <input value={address} onChange={(e) => setAddress(e.target.value)} className="mt-1 w-full border rounded-md px-3 py-2" placeholder="Street address" />
+                  <div className="mt-2 grid grid-cols-1 md:grid-cols-3 gap-2">
+                    <input value={city} onChange={(e) => setCity(e.target.value)} placeholder="City" className="w-full border rounded-md px-3 py-2" />
+                    <input value={stateVal} onChange={(e) => setStateVal(e.target.value)} placeholder="State" className="w-full border rounded-md px-3 py-2" />
+                    <input value={postalCode} onChange={(e) => setPostalCode(e.target.value)} placeholder="Postal code" className="w-full border rounded-md px-3 py-2" />
+                  </div>
+                  <div className="mt-2">
+                    <input value={country} onChange={(e) => setCountry(e.target.value)} placeholder="Country" className="w-full border rounded-md px-3 py-2" />
+                  </div>
+                </div>
+              )}
+
               <div>
                 <label className="block text-xs font-medium text-gray-600">Email</label>
                 <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" required className="mt-1 w-full border rounded-md px-3 py-2" placeholder="you@example.com" />
@@ -91,8 +126,15 @@ export default function LoginPage() {
 
               <div>
                 <label className="block text-xs font-medium text-gray-600">Password</label>
-                <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" required className="mt-1 w-full border rounded-md px-3 py-2" placeholder="••••••••" />
+                <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" required className="mt-1 w-full border rounded-md px-3 py-2" placeholder="Create a password" />
               </div>
+
+              {mode === 'signup' && (
+                <div>
+                  <label className="block text-xs font-medium text-gray-600">Confirm password</label>
+                  <input value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} type="password" required className="mt-1 w-full border rounded-md px-3 py-2" placeholder="Confirm password" />
+                </div>
+              )}
 
               <div>
                 <button type="submit" disabled={loading} className="w-full bg-gradient-to-r from-brand-500 to-brand-700 text-white px-4 py-2 rounded-md font-semibold">

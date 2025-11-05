@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 
 const BACKEND_URL = (import.meta.env.VITE_API_BASE as string) || 'http://localhost:5000';
 
@@ -96,9 +97,53 @@ export default function OrderForm() {
     }
   };
 
+  // Prefill from cart (localStorage) and authenticated user metadata when modal opens
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('pawfinder_cart');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0 && !itemsText) {
+          // convert to itemsText lines: name,qty,price
+          const lines = parsed.map((it: any) => `${it.breed || it.name || 'item'},${it.qty || 1},${it.price || 0}`);
+          setItemsText(lines.join('\n'));
+        }
+      }
+    } catch (e) {}
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const { user: authUser } = useAuth();
+  useEffect(() => {
+    if (!authUser) return;
+    try {
+      const meta: any = (authUser as any).user_metadata || (authUser as any).user || {};
+      // supabase stores custom fields under user.user_metadata
+      const full = meta.full_name || meta.fullName || '';
+      const emailVal = (authUser as any).email || meta.email || '';
+      const phoneVal = meta.phone || '';
+      const addrParts = [meta.address, meta.city, meta.state, meta.postal_code, meta.country].filter(Boolean);
+      const addr = addrParts.join(', ');
+      setUser((u) => ({ ...u, name: full || u.name, email: emailVal || u.email, phone: phoneVal || u.phone, address: addr || u.address }));
+    } catch (e) {
+      // ignore
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authUser]);
+
   return (
     <div className="max-w-lg mx-auto bg-white rounded-lg shadow p-4">
       <h3 className="text-lg font-medium mb-3">Place an Order</h3>
+      {/* Quick confirmation summary */}
+      <div className="mb-4 p-3 border rounded bg-gray-50">
+        <div className="text-sm text-gray-600">Ship to</div>
+        <div className="font-medium">{user.address || 'No address provided'}</div>
+        <div className="text-sm text-gray-600 mt-2">Contact</div>
+        <div className="text-sm">{user.name || 'Name not provided'} · {user.email || 'No email'} · {user.phone || 'No phone'}</div>
+        <div className="text-sm text-gray-600 mt-2">Payment</div>
+        <div className="text-sm font-medium">{payment === 'cod' ? 'Cash on Delivery' : 'Online Payment'}</div>
+        <div className="mt-2 text-xs text-gray-500">Please confirm these details before placing your order.</div>
+      </div>
       <form onSubmit={submit} className="space-y-3">
         <div>
           <label className="block text-sm">Name</label>

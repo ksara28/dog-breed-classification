@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import os
 import json
 import time
@@ -22,6 +23,8 @@ except Exception:
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 app = Flask(__name__)
+# allow cross-origin requests from the frontend during development
+CORS(app)
 
 # Attempts to load a Keras model file if present
 MODEL_PATH = os.path.join(BASE_DIR, 'dog_breed_model.h5')
@@ -190,12 +193,54 @@ def _extract_groq_text(resp_json):
 	if not resp_json:
 		return None
 	if isinstance(resp_json, dict):
+		# Groq responses often include an 'output' which may be a list of message objects
 		if 'output' in resp_json:
 			out = resp_json.get('output')
+			# string output
 			if isinstance(out, str):
 				return out
+			# single object
 			if isinstance(out, dict):
+				# common fields
 				return out.get('text') or out.get('content')
+			# list of outputs -> try to extract nested content texts
+			if isinstance(out, list) and len(out) > 0:
+				parts = []
+				for entry in out:
+					if not isinstance(entry, dict):
+						continue
+					# content may be under entry['content'] as list of fragments
+					content = entry.get('content')
+					if isinstance(content, str):
+						parts.append(content)
+					elif isinstance(content, dict):
+						parts.append(content.get('text') or content.get('content') or '')
+					elif isinstance(content, list):
+						for c in content:
+							if isinstance(c, dict) and 'text' in c:
+								parts.append(c.get('text'))
+							elif isinstance(c, str):
+								parts.append(c)
+					# older shapes: message
+					msg = entry.get('message') or entry.get('msg')
+					if isinstance(msg, dict):
+						# try nested content
+						mcont = msg.get('content')
+						if isinstance(mcont, list):
+							for c in mcont:
+								if isinstance(c, dict) and 'text' in c:
+									parts.append(c.get('text'))
+								elif isinstance(c, str):
+									parts.append(c)
+						elif isinstance(mcont, str):
+							parts.append(mcont)
+				# fall back to text field
+				if 'text' in entry and isinstance(entry.get('text'), str):
+					parts.append(entry.get('text'))
+				# join non-empty parts
+				joined = '\n'.join([p for p in parts if p])
+				if joined:
+					return joined
 		if 'text' in resp_json:
 			return resp_json.get('text')
 		if 'choices' in resp_json and isinstance(resp_json.get('choices'), list) and len(resp_json.get('choices'))>0:

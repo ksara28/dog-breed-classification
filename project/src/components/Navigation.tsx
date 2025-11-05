@@ -11,6 +11,9 @@ export default function Navigation() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const navigateTo = (path: string) => {
     try {
@@ -27,6 +30,7 @@ export default function Navigation() {
     try {
       if (path === '/predict') import('../pages/PredictPage');
       if (path === '/marketplace') import('../pages/MarketplacePage');
+          if (path === '/feedback') import('../pages/FeedbackPage');
       if (path === '/contact') import('../pages/ContactPage');
       if (path === '/cart') import('../pages/CartPage');
       if (path === '/orders') import('../pages/OrdersPage');
@@ -59,6 +63,8 @@ export default function Navigation() {
                 <a onMouseEnter={() => prefetch('/marketplace')} onClick={(e) => { e.preventDefault(); navigateTo('/marketplace'); }} href="/marketplace" className="text-gray-700 hover:text-brand-500 transition-colors font-medium">Marketplace</a>
                 <a onMouseEnter={() => prefetch('/about')} onClick={(e) => { e.preventDefault(); navigateTo('/about'); }} href="/about" className="text-gray-700 hover:text-brand-500 transition-colors font-medium">About</a>
                 <a onMouseEnter={() => prefetch('/contact')} onClick={(e) => { e.preventDefault(); navigateTo('/contact'); }} href="/contact" className="text-gray-700 hover:text-brand-500 transition-colors font-medium">Contact</a>
+                <a onMouseEnter={() => prefetch('/feedback')} onClick={(e) => { e.preventDefault(); navigateTo('/feedback'); }} href="/feedback" className="text-gray-700 hover:text-brand-500 transition-colors font-medium">Feedback</a>
+                <a onMouseEnter={() => prefetch('/history')} onClick={(e) => { e.preventDefault(); navigateTo('/history'); }} href="/history" className="text-gray-700 hover:text-brand-500 transition-colors font-medium">History</a>
               </div>
 
               {user ? (
@@ -95,18 +101,7 @@ export default function Navigation() {
                       </ul>
                       <div className="p-3 border-t space-y-2">
                         <button onClick={async () => { await signOut(); setShowProfileMenu(false); }} className="w-full text-left text-sm text-gray-700 hover:text-red-600">Sign out</button>
-                        <button onClick={async () => {
-                          setShowProfileMenu(false);
-                          const ok = window.confirm('Are you sure you want to delete your account? This action cannot be undone.');
-                          if (!ok) return;
-                          const res = await deleteAccount();
-                          if (res?.error) {
-                            alert(res.error.message || 'Account deletion is not available in this environment.');
-                          } else {
-                            window.history.pushState({}, '', '/');
-                            window.dispatchEvent(new PopStateEvent('popstate'));
-                          }
-                        }} className="w-full text-left text-sm text-red-600">Delete account</button>
+                        <button onClick={(e) => { e.preventDefault(); setShowProfileMenu(false); setShowDeleteModal(true); }} className="w-full text-left text-sm text-red-600">Delete account</button>
                       </div>
                     </div>
                   )}
@@ -121,6 +116,40 @@ export default function Navigation() {
           </div>
         </div>
       </nav>
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
+            <h3 className="text-lg font-semibold mb-2">Confirm account deletion</h3>
+            <p className="text-sm text-gray-600 mb-4">This action will permanently delete your account. To confirm, type your email below and click Delete.</p>
+            <input value={deleteConfirmText} onChange={(e) => setDeleteConfirmText(e.target.value)} placeholder="Type your email to confirm" className="w-full border rounded px-3 py-2 mb-2" />
+            {deleteError && <div className="text-sm text-red-600 mb-2">{deleteError}</div>}
+            <div className="flex justify-end space-x-2">
+              <button onClick={() => { setShowDeleteModal(false); setDeleteConfirmText(''); setDeleteError(null); }} className="px-4 py-2 rounded border">Cancel</button>
+              <button onClick={async () => {
+                setDeleteError(null);
+                const expected = user?.email || '';
+                if (expected && deleteConfirmText.trim() !== expected) {
+                  setDeleteError('The email you entered does not match your account email.');
+                  return;
+                }
+                try {
+                  const res = await deleteAccount();
+                  if (res?.error) {
+                    alert(res.error.message || 'Account deletion is not available in this environment. You will be signed out locally.');
+                  }
+                } catch (err) {
+                  // ignore
+                }
+                try { await signOut(); } catch (e) { /* ignore */ }
+                setShowDeleteModal(false);
+                setDeleteConfirmText('');
+                window.history.pushState({}, '', '/');
+                window.dispatchEvent(new PopStateEvent('popstate'));
+              }} className="px-4 py-2 rounded bg-red-600 text-white">Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
       <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} initialMode={authMode} />
       <ChatLauncher />
     </>

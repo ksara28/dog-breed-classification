@@ -12,6 +12,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
   const [mode, setMode] = useState<'login' | 'signup'>(initialMode);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
@@ -48,8 +49,13 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
           setPassword('');
         }
       } else {
-    const addr = { address: address || null, city: city || null, state: stateVal || null, postal_code: postalCode || null, country: country || null };
-    const { error } = await signUp(email, password, fullName, phone, addr);
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      setIsLoading(false);
+      return;
+    }
+  const addr = { address: address || undefined, city: city || undefined, state: stateVal || undefined, postal_code: postalCode || undefined, country: country || undefined };
+  const { error } = await signUp(email, password, fullName, phone, addr);
         if (error) {
           setError(error.message);
         } else {
@@ -171,12 +177,32 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-brand-500 focus:outline-none transition-colors"
-                placeholder="••••••••"
+                placeholder="Create a password"
                 required
                 minLength={6}
               />
             </div>
           </div>
+
+          {mode === 'signup' && (
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Confirm Password
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-brand-500 focus:outline-none transition-colors"
+                  placeholder="Confirm password"
+                  required
+                  minLength={6}
+                />
+              </div>
+            </div>
+          )}
 
           <button
             type="submit"
