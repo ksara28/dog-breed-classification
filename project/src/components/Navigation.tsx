@@ -3,6 +3,7 @@ import { Dog, LogIn, User as UserIcon, ShoppingCart, Clock } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
 import AuthModal from './AuthModal';
+import ChatLauncher from './ChatLauncher';
 
 export default function Navigation() {
   const { user, signOut, deleteAccount } = useAuth();
@@ -121,6 +122,7 @@ export default function Navigation() {
         </div>
       </nav>
       <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} initialMode={authMode} />
+      <ChatLauncher />
     </>
   );
 }

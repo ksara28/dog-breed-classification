@@ -51,7 +51,7 @@ export default function BreedInfo({ breed, confidence, image }: BreedInfoProps) 
                 <h2 className="text-3xl md:text-4xl font-bold mb-2">{breed}</h2>
                 <div className="flex items-center space-x-2">
                   <Award className="w-6 h-6" />
-                  <span className="text-xl font-semibold">Confidence: {confidence}%</span>
+                  <span className="text-xl font-semibold">Confidence: {confidence == null ? '—' : `${Math.min(100, Math.round(confidence))}%`}</span>
                 </div>
               </div>
               {image && (

@@ -47,10 +47,17 @@ export default function PredictSection({ onPrediction }: PredictSectionProps) {
   const data = await res.json();
   console.log('Prediction response', data);
   const breed = data.breed ?? 'Unknown';
-  // data.confidence is expected as a fraction between 0 and 1 (e.g. 0.9234).
-  // Convert to percent (e.g. 92.34) and round to two decimals for display.
-  const confidenceFraction = typeof data.confidence === 'number' ? data.confidence : 0;
-  const confidence = Math.round(confidenceFraction * 10000) / 100; // percent with 2 decimals
+  // data.confidence may be either a fraction between 0 and 1 (e.g. 0.9234)
+  // or already a percent number (e.g. 92.34). Normalize to a percentage
+  // value in range [0, 100] and round to two decimals.
+  const rawConfidence = typeof data.confidence === 'number' ? data.confidence : 0;
+  let percent = rawConfidence;
+  if (rawConfidence <= 1) {
+    // fraction -> percent
+    percent = rawConfidence * 100;
+  }
+  // clamp and round to two decimals
+  const confidence = Math.min(100, Math.round(percent * 100) / 100);
       setError(null);
       onPrediction(breed, confidence, preview ?? '');
     } catch (err) {

@@ -30,7 +30,17 @@ export default function CartPage() {
 
             <div className="flex items-center justify-between">
               <button onClick={() => clearCart()} className="bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 rounded-lg">Clear Cart</button>
-              <button className="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg">Proceed to Checkout</button>
+              <button onClick={() => {
+                try {
+                  if (window.location.pathname !== '/orders') {
+                    window.history.pushState({}, '', '/orders');
+                    window.dispatchEvent(new PopStateEvent('popstate'));
+                  }
+                } catch (e) {
+                  try { window.location.href = '/orders'; } catch (_) {}
+                }
+                try { window.dispatchEvent(new CustomEvent('open-order-modal')); } catch (e) {}
+              }} className="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg">Proceed to Checkout</button>
             </div>
           </div>
         )}

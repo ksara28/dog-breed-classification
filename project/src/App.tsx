@@ -2,12 +2,15 @@ import { useState, useEffect } from 'react';
 import Navigation from './components/Navigation';
 import Footer from './components/Footer';
 import { Suspense, lazy } from 'react';
+import { useAuth } from './contexts/AuthContext';
+const LoginPage = lazy(() => import('./pages/LoginPage'));
 
 const HomePage = lazy(() => import('./pages/HomePage'));
 const PredictPage = lazy(() => import('./pages/PredictPage'));
 const MarketplacePage = lazy(() => import('./pages/MarketplacePage'));
 const AboutPage = lazy(() => import('./pages/AboutPage'));
 const ContactPage = lazy(() => import('./pages/ContactPage'));
+const ChatPage = lazy(() => import('./pages/ChatPage'));
 const CartPage = lazy(() => import('./pages/CartPage'));
 const OrdersPage = lazy(() => import('./pages/OrdersPage'));
 const HistoryPage = lazy(() => import('./pages/HistoryPage'));
@@ -24,7 +27,30 @@ function App() {
     return () => window.removeEventListener('popstate', onPop);
   }, []);
 
+  // Scroll to top whenever the route changes so new pages render from the top
+  useEffect(() => {
+    try { window.scrollTo(0, 0); } catch (e) { /* ignore */ }
+  }, [pathname]);
+
   // no in-page sections: each nav item maps to a standalone page component
+
+  const { user, loading } = useAuth();
+
+  // If auth is still initializing show a small loader
+  if (loading) {
+    return <div className="py-24 text-center">Loading...</div>;
+  }
+
+  // If not signed in, show the login/signup page first
+  if (!user) {
+    return (
+      <div>
+        <Suspense fallback={<div className="py-24 text-center">Loading...</div>}>
+          <LoginPage />
+        </Suspense>
+      </div>
+    );
+  }
 
   // route switch
   if (pathname === '/predict') {
@@ -69,6 +95,18 @@ function App() {
         <Navigation />
         <Suspense fallback={<div className="py-24 text-center">Loading...</div>}>
           <ContactPage />
+        </Suspense>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (pathname === '/chat') {
+    return (
+      <div>
+        <Navigation />
+        <Suspense fallback={<div className="py-24 text-center">Loading...</div>}>
+          <ChatPage />
         </Suspense>
         <Footer />
       </div>

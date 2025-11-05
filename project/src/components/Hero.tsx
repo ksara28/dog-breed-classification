@@ -17,8 +17,14 @@ export default function Hero() {
 
       <div className="relative z-10 text-center px-4 max-w-4xl mx-auto animate-fade-in">
         <div className="mb-8 inline-block">
-          <div className="w-24 h-24 bg-gradient-to-br from-brand-400 to-brand-600 rounded-full flex items-center justify-center shadow-2xl animate-bounce-slow">
-            <span className="text-5xl">🐕</span>
+          {/* Replaced emoji with a playful image to make the hero more interesting */}
+          <div className="w-28 h-28 rounded-full overflow-hidden shadow-2xl animate-bounce-slow bg-white flex items-center justify-center">
+            <img
+              src="https://img.freepik.com/premium-photo/restful-golden-retriever-puppy-enjoying-homes-warmth-generative-ai_58409-65131.jpg"
+              alt="Playful dog"
+              className="w-full h-full object-cover object-center"
+              loading="lazy"
+            />
           </div>
         </div>
 
