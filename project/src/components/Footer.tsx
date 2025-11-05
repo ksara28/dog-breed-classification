@@ -19,11 +19,11 @@ export default function Footer() {
             <h3 className="text-xl font-bold mb-4">Contact Us</h3>
             <div className="space-y-3">
               <a
-                href="mailto:sara1228k@gmail.com"
+                href="mailto:breed123@gmail.com"
                 className="flex items-center space-x-3 text-gray-400 hover:text-brand-500 transition-colors"
               >
                 <Mail className="w-5 h-5" />
-                <span>sara1228k@gmail.com</span>
+                <span>breed123@gmail.com</span>
               </a>
               <a
                 href="tel:1234567890"
