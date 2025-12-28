@@ -22,7 +22,7 @@ LR_STAGE2 = 1e-5
 
 # ✅ Data Augmentation
 datagen = ImageDataGenerator(
-    rescale=1./255,
+    rescale=1./255,rr
     validation_split=0.2,
     rotation_range=20,
     width_shift_range=0.1,

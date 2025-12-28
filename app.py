@@ -11,6 +11,7 @@ from typing import Optional
 import requests
 import numpy as np
 import cv2
+from dotenv import load_dotenv
 
 # Try to import tensorflow / keras model if available. If not present, the predict
 # endpoint will return an error indicating the model is not available.
@@ -22,9 +23,21 @@ except Exception:
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
+# Load environment variables from a .env file in the project root (if present)
+load_dotenv(os.path.join(BASE_DIR, '.env'))
+
 app = Flask(__name__)
 # allow cross-origin requests from the frontend during development
 CORS(app)
+
+# Log presence of GROQ environment variables at startup to help diagnose "GROQ not configured" issues
+def _log_groq_env_status():
+	k = bool(os.environ.get('GROQ_API_KEY'))
+	u = bool(os.environ.get('GROQ_API_URL'))
+	m = bool(os.environ.get('GROQ_MODEL'))
+	print(f"GROQ env - API_KEY set: {k}, API_URL set: {u}, MODEL set: {m}")
+
+_log_groq_env_status()
 
 # Attempts to load a Keras model file if present
 MODEL_PATH = os.path.join(BASE_DIR, 'dog_breed_model.h5')
@@ -252,6 +265,12 @@ def _extract_groq_text(resp_json):
 
 @app.route('/verify-groq', methods=['GET'])
 def verify_groq():
+	# Per-request debug: show which PID handles the request and whether GROQ env vars are present
+	pid = os.getpid()
+	print(f"[DEBUG] verify_groq handler PID: {pid}")
+	print(f"[DEBUG] GROQ_API_KEY present: {bool(os.environ.get('GROQ_API_KEY'))}")
+	print(f"[DEBUG] GROQ_API_URL present: {bool(os.environ.get('GROQ_API_URL'))}")
+	print(f"[DEBUG] GROQ_MODEL present: {bool(os.environ.get('GROQ_MODEL'))}")
 	groq_key = os.environ.get('GROQ_API_KEY')
 	groq_url = os.environ.get('GROQ_API_URL')
 	if not groq_key or not groq_url:
@@ -271,6 +290,12 @@ def verify_groq():
 
 @app.route('/chat', methods=['POST'])
 def chat():
+	# Per-request debug: show which PID handles the request and whether GROQ env vars are present
+	pid = os.getpid()
+	print(f"[DEBUG] chat handler PID: {pid}")
+	print(f"[DEBUG] GROQ_API_KEY present: {bool(os.environ.get('GROQ_API_KEY'))}")
+	print(f"[DEBUG] GROQ_API_URL present: {bool(os.environ.get('GROQ_API_URL'))}")
+	print(f"[DEBUG] GROQ_MODEL present: {bool(os.environ.get('GROQ_MODEL'))}")
 	data = request.get_json() or {}
 	question = (data.get('question') or '').strip()
 	if not question:
